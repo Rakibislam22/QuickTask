@@ -1,0 +1,136 @@
+"use client";
+
+import axios from "axios";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+
+export default function RegisterPage() {
+    const router = useRouter();
+    const [name, setName] = useState('');
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+    const [error, setError] = useState('');
+
+    const handleRegister = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setError('');
+
+        try {
+            await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/auth/register`, {
+                name,
+                email,
+                password,
+            });
+
+            router.push('/login');
+        } catch (err: any) {
+            setError(err.response?.data?.message || 'Registration failed. Please try again.');
+        }
+    };
+
+    return (
+        <main className="min-h-screen overflow-hidden bg-[radial-gradient(circle_at_top_left,rgba(255,255,255,0.18),transparent_36%),radial-gradient(circle_at_bottom_right,rgba(56,189,248,0.2),transparent_34%),linear-gradient(135deg,#0f172a_0%,#111827_55%,#0b1120_100%)] px-4 py-10 text-white sm:px-6 lg:px-8">
+            <div className="mx-auto flex min-h-[calc(100vh-5rem)] max-w-7xl items-center justify-center">
+                <section className="w-full max-w-md rounded-3xl border border-white/15 bg-white/10 p-8 shadow-2xl shadow-slate-950/30 backdrop-blur-xl sm:p-10">
+                    <div className="mb-8 text-center">
+                        <p className="text-sm font-medium uppercase tracking-[0.3em] text-cyan-200/80">
+                            Get started
+                        </p>
+                        <h1 className="mt-3 text-3xl font-semibold tracking-tight text-white sm:text-4xl">
+                            Create your account
+                        </h1>
+                        <p className="mt-3 text-sm leading-6 text-slate-300">
+                            Sign up with your name, email, and password.
+                        </p>
+                    </div>
+
+                    {error && (
+                        <div className="mb-4 rounded-xl border border-red-500/50 bg-red-500/20 p-3 text-center">
+                            <p className="text-sm text-red-200">{error}</p>
+                        </div>
+                    )}
+
+                    <form className="space-y-5" onSubmit={handleRegister}>
+                        <div>
+                            <label
+                                htmlFor="name"
+                                className="mb-2 block text-sm font-medium text-slate-200"
+                            >
+                                Name
+                            </label>
+                            <input
+                                id="name"
+                                name="name"
+                                type="text"
+                                autoComplete="name"
+                                placeholder="Your name"
+                                value={name}
+                                onChange={(e) => setName(e.target.value)}
+                                className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-white placeholder:text-slate-400 outline-none transition focus:border-cyan-300/60 focus:bg-white/10 focus:ring-2 focus:ring-cyan-300/25"
+                                required
+                            />
+                        </div>
+
+                        <div>
+                            <label
+                                htmlFor="email"
+                                className="mb-2 block text-sm font-medium text-slate-200"
+                            >
+                                Email
+                            </label>
+                            <input
+                                id="email"
+                                name="email"
+                                type="email"
+                                autoComplete="email"
+                                placeholder="you@example.com"
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
+                                className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-white placeholder:text-slate-400 outline-none transition focus:border-cyan-300/60 focus:bg-white/10 focus:ring-2 focus:ring-cyan-300/25"
+                                required
+                            />
+                        </div>
+
+                        <div>
+                            <label
+                                htmlFor="password"
+                                className="mb-2 block text-sm font-medium text-slate-200"
+                            >
+                                Password
+                            </label>
+                            <input
+                                id="password"
+                                name="password"
+                                type="password"
+                                autoComplete="new-password"
+                                placeholder="Create a password"
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                                className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-white placeholder:text-slate-400 outline-none transition focus:border-cyan-300/60 focus:bg-white/10 focus:ring-2 focus:ring-cyan-300/25"
+                                required
+                            />
+                        </div>
+
+                        <button
+                            type="submit"
+                            className="inline-flex w-full items-center justify-center rounded-2xl bg-cyan-400 px-4 py-3 text-sm font-semibold text-slate-950 shadow-lg shadow-cyan-500/25 transition hover:bg-cyan-300 focus:outline-none focus:ring-2 focus:ring-cyan-200 focus:ring-offset-2 focus:ring-offset-slate-950"
+                        >
+                            Create account
+                        </button>
+                    </form>
+
+                    <p className="mt-6 text-center text-sm text-slate-300">
+                        Already have an account?{" "}
+                        <Link
+                            href="/login"
+                            className="font-medium text-cyan-200 underline decoration-cyan-200/40 underline-offset-4 transition hover:text-cyan-100 hover:decoration-cyan-100"
+                        >
+                            Log in here
+                        </Link>
+                    </p>
+                </section>
+            </div>
+        </main>
+    );
+}
