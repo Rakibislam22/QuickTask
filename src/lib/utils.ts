@@ -287,3 +287,29 @@ export function isFreeTierLimitError(error: unknown) {
     const response = error as { response?: { status?: number } };
     return response.response?.status === 403;
 }
+
+export function getApiErrorMessage(error: unknown, fallbackMessage: string) {
+    if (typeof error !== "object" || error === null) {
+        return fallbackMessage;
+    }
+
+    if ("message" in error && typeof (error as { message: unknown }).message === "string") {
+        const message = (error as { message: string }).message;
+        if (message.toLowerCase().includes("network error") || message.toLowerCase().includes("failed to fetch")) {
+            return "Network error. Please check your connection and try again.";
+        }
+    }
+
+    if ("response" in error) {
+        const response = (error as { response?: { data?: any } }).response;
+        if (response?.data) {
+            const data = response.data;
+            const message = data.message || data.error || (typeof data === "string" ? data : null);
+            if (typeof message === "string" && message.trim()) {
+                return message;
+            }
+        }
+    }
+
+    return fallbackMessage;
+}

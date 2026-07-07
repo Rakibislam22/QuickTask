@@ -2,9 +2,10 @@
 
 import axios from "axios";
 import Link from "next/link";
-import { useRouter } from "next/navigation"; 
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useToast } from "@/components/ToastProvider";
+import { getApiErrorMessage } from "@/lib/utils";
 
 export default function LoginPage() {
     const router = useRouter();
@@ -38,7 +39,7 @@ export default function LoginPage() {
             showToast('Login successful. Welcome back!', 'success');
             router.push('/dashboard');
         } catch (err: unknown) {
-            const errorMessage = getAuthErrorMessage(err, 'Login failed. Please try again.');
+            const errorMessage = getApiErrorMessage(err, 'Login failed. Please try again.');
             setError(errorMessage);
             showToast(errorMessage, 'error');
         } finally {
@@ -135,15 +136,4 @@ export default function LoginPage() {
             </div>
         </main>
     );
-}
-
-function getAuthErrorMessage(error: unknown, fallback: string) {
-    if (typeof error !== "object" || error === null || !("response" in error)) {
-        return fallback;
-    }
-
-    const responseError = error as { response?: { data?: { message?: unknown } } };
-    const message = responseError.response?.data?.message;
-
-    return typeof message === "string" && message.trim() ? message : fallback;
 }

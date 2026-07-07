@@ -13,6 +13,7 @@ import { loadStripe } from "@stripe/stripe-js";
 import api from "@/lib/axios";
 import {
     extractTaskFromResponse,
+    getApiErrorMessage,
     getAssigneeInitials,
     getNextStatus,
     getTagClass,
@@ -141,7 +142,9 @@ export default function DashboardPage() {
                 }
 
                 setTasks([]);
-                setMessage("Unable to load tasks. Please try again.");
+                const errorMessage = getApiErrorMessage(error, "Unable to load tasks. Please try again.");
+                setMessage(errorMessage);
+                showToast(errorMessage, "error");
                 console.error("Failed to fetch tasks:", error);
             } finally {
                 setIsLoading(false);
@@ -211,9 +214,9 @@ export default function DashboardPage() {
                 return;
             }
 
-            const errorMessage = isFreeTierLimitError(error)
-                ? "Free tier limit reached. Please upgrade."
-                : "Unable to create task. Please try again.";
+            const specificError = isFreeTierLimitError(error) ? "Free tier limit reached. Please upgrade." : null;
+            const errorMessage = getApiErrorMessage(error, specificError ?? "Unable to create task. Please try again.");
+
             setMessage(errorMessage);
             showToast(errorMessage, "error");
             console.error("Failed to create task:", error);
@@ -255,7 +258,9 @@ export default function DashboardPage() {
                 return;
             }
 
-            setMessage("Unable to update task status. Please try again.");
+            const errorMessage = getApiErrorMessage(error, "Unable to update task status. Please try again.");
+            setMessage(errorMessage);
+            showToast(errorMessage, "error");
             console.error("Failed to update task status:", error);
         } finally {
             setMovingTaskId(null);
@@ -290,7 +295,7 @@ export default function DashboardPage() {
                 performLogout(router);
                 return;
             }
-            const errorMessage = "Unable to delete task. Please try again.";
+            const errorMessage = getApiErrorMessage(error, "Unable to delete task. Please try again.");
             setMessage(errorMessage);
             showToast(errorMessage, "error");
             console.error("Failed to delete task:", error);
@@ -307,7 +312,9 @@ export default function DashboardPage() {
             const stripe = await stripePromise;
 
             if (!stripe) {
-                setMessage("Stripe is not configured yet. Please try again later.");
+                const msg = "Stripe is not configured yet. Please try again later.";
+                setMessage(msg);
+                showToast(msg, "error");
                 return;
             }
 
@@ -323,21 +330,27 @@ export default function DashboardPage() {
 
             if (!sessionId) {
                 console.error("Checkout session response did not include a sessionId or url:", response.data);
-                setMessage("Unable to start checkout. Please try again.");
+                const msg = "Unable to start checkout. Please try again.";
+                setMessage(msg);
+                showToast(msg, "error");
                 return;
             }
 
             const checkoutStripe = stripe as unknown as StripeCheckoutClient;
             if (typeof checkoutStripe.redirectToCheckout !== "function") {
                 console.error("Stripe redirectToCheckout is unavailable on the loaded Stripe client.");
-                setMessage("Stripe Checkout is not available. Please try again later.");
+                const msg = "Stripe Checkout is not available. Please try again later.";
+                setMessage(msg);
+                showToast(msg, "error");
                 return;
             }
 
             const result = await checkoutStripe.redirectToCheckout({ sessionId });
 
             if (result.error) {
-                setMessage(result.error.message ?? "Unable to redirect to checkout. Please try again.");
+                const msg = result.error.message ?? "Unable to redirect to checkout. Please try again.";
+                setMessage(msg);
+                showToast(msg, "error");
             }
         } catch (error) {
             if (isUnauthorizedError(error)) {
@@ -345,7 +358,9 @@ export default function DashboardPage() {
                 return;
             }
 
-            setMessage("Unable to start checkout. Please try again.");
+            const errorMessage = getApiErrorMessage(error, "Unable to start checkout. Please try again.");
+            setMessage(errorMessage);
+            showToast(errorMessage, "error");
             console.error("Failed to create checkout session:", error);
         } finally {
             setIsUpgrading(false);

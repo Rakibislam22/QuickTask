@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useToast } from "@/components/ToastProvider";
+import { getApiErrorMessage } from "@/lib/utils";
 
 export default function RegisterPage() {
     const router = useRouter();
@@ -38,7 +39,7 @@ export default function RegisterPage() {
             showToast('Account created successfully. Please log in.', 'success');
             router.push('/login');
         } catch (err: unknown) {
-            const errorMessage = getAuthErrorMessage(err, 'Registration failed. Please try again.');
+            const errorMessage = getApiErrorMessage(err, 'Registration failed. Please try again.');
             setError(errorMessage);
             showToast(errorMessage, 'error');
         } finally {
@@ -151,15 +152,4 @@ export default function RegisterPage() {
             </div>
         </main>
     );
-}
-
-function getAuthErrorMessage(error: unknown, fallback: string) {
-    if (typeof error !== "object" || error === null || !("response" in error)) {
-        return fallback;
-    }
-
-    const responseError = error as { response?: { data?: { message?: unknown } } };
-    const message = responseError.response?.data?.message;
-
-    return typeof message === "string" && message.trim() ? message : fallback;
 }
