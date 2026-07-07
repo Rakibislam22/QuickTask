@@ -4,17 +4,21 @@ import axios from "axios";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { useToast } from "@/components/ToastProvider";
 
 export default function RegisterPage() {
     const router = useRouter();
+    const { showToast } = useToast();
     const [name, setName] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
+    const [isLoading, setIsLoading] = useState(false);
 
     const handleRegister = async (e: React.FormEvent) => {
         e.preventDefault();
         setError('');
+        setIsLoading(true);
 
         try {
             await axios.post(
@@ -31,9 +35,14 @@ export default function RegisterPage() {
                 }
             );
 
+            showToast('Account created successfully. Please log in.', 'success');
             router.push('/login');
-        } catch (err: any) {
-            setError(err.response?.data?.message || 'Registration failed. Please try again.');
+        } catch (err: unknown) {
+            const errorMessage = getAuthErrorMessage(err, 'Registration failed. Please try again.');
+            setError(errorMessage);
+            showToast(errorMessage, 'error');
+        } finally {
+            setIsLoading(false);
         }
     };
 
@@ -122,9 +131,10 @@ export default function RegisterPage() {
 
                         <button
                             type="submit"
-                            className="inline-flex w-full items-center justify-center rounded-2xl bg-cyan-400 px-4 py-3 text-sm font-semibold text-slate-950 shadow-lg shadow-cyan-500/25 transition hover:bg-cyan-300 focus:outline-none focus:ring-2 focus:ring-cyan-200 focus:ring-offset-2 focus:ring-offset-slate-950"
+                            disabled={isLoading}
+                            className="inline-flex w-full items-center justify-center rounded-2xl bg-cyan-400 px-4 py-3 text-sm font-semibold text-slate-950 shadow-lg shadow-cyan-500/25 transition hover:bg-cyan-300 focus:outline-none focus:ring-2 focus:ring-cyan-200 focus:ring-offset-2 focus:ring-offset-slate-950 disabled:cursor-not-allowed disabled:opacity-70"
                         >
-                            Create account
+                            {isLoading ? "Creating account..." : "Create account"}
                         </button>
                     </form>
 
@@ -141,4 +151,15 @@ export default function RegisterPage() {
             </div>
         </main>
     );
+}
+
+function getAuthErrorMessage(error: unknown, fallback: string) {
+    if (typeof error !== "object" || error === null || !("response" in error)) {
+        return fallback;
+    }
+
+    const responseError = error as { response?: { data?: { message?: unknown } } };
+    const message = responseError.response?.data?.message;
+
+    return typeof message === "string" && message.trim() ? message : fallback;
 }

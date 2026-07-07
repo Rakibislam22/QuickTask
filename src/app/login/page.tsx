@@ -3,17 +3,29 @@
 import axios from "axios";
 import Link from "next/link";
 import { useRouter } from "next/navigation"; 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useToast } from "@/components/ToastProvider";
 
 export default function LoginPage() {
     const router = useRouter();
+    const { showToast } = useToast();
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
+    const [isLoading, setIsLoading] = useState(false);
+
+    useEffect(() => {
+        const user = localStorage.getItem('user');
+
+        if (user) {
+            router.push('/dashboard');
+        }
+    }, [router]);
 
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
         setError('');
+        setIsLoading(true);
 
         try {
             const res = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/auth/login`, {
@@ -22,9 +34,15 @@ export default function LoginPage() {
             });
 
             localStorage.setItem('token', res.data.token);
+            localStorage.setItem('user', JSON.stringify(res.data.user));
+            showToast('Login successful. Welcome back!', 'success');
             router.push('/dashboard');
-        } catch (err: any) {
-            setError(err.response?.data?.message || 'Login failed. Please try again.');
+        } catch (err: unknown) {
+            const errorMessage = getAuthErrorMessage(err, 'Login failed. Please try again.');
+            setError(errorMessage);
+            showToast(errorMessage, 'error');
+        } finally {
+            setIsLoading(false);
         }
     };
 
@@ -97,9 +115,10 @@ export default function LoginPage() {
 
                         <button
                             type="submit"
-                            className="inline-flex w-full items-center justify-center rounded-2xl bg-cyan-400 px-4 py-3 text-sm font-semibold text-slate-950 shadow-lg shadow-cyan-500/25 transition hover:bg-cyan-300 focus:outline-none focus:ring-2 focus:ring-cyan-200 focus:ring-offset-2 focus:ring-offset-slate-950"
+                            disabled={isLoading}
+                            className="inline-flex w-full items-center justify-center rounded-2xl bg-cyan-400 px-4 py-3 text-sm font-semibold text-slate-950 shadow-lg shadow-cyan-500/25 transition hover:bg-cyan-300 focus:outline-none focus:ring-2 focus:ring-cyan-200 focus:ring-offset-2 focus:ring-offset-slate-950 disabled:cursor-not-allowed disabled:opacity-70"
                         >
-                            Sign in
+                            {isLoading ? "Signing in..." : "Sign in"}
                         </button>
                     </form>
 
@@ -116,4 +135,15 @@ export default function LoginPage() {
             </div>
         </main>
     );
+}
+
+function getAuthErrorMessage(error: unknown, fallback: string) {
+    if (typeof error !== "object" || error === null || !("response" in error)) {
+        return fallback;
+    }
+
+    const responseError = error as { response?: { data?: { message?: unknown } } };
+    const message = responseError.response?.data?.message;
+
+    return typeof message === "string" && message.trim() ? message : fallback;
 }
