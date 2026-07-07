@@ -1,36 +1,78 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Quick Task - Task Management Application
 
-## Getting Started
+This is a modern, responsive task management application built with Next.js and Tailwind CSS. It allows users to manage their tasks through a Kanban-style board with "To Do", "In Progress", and "Done" lanes.
 
-First, run the development server:
+## Features
+
+- **User Authentication**: Secure login and registration system using JWT.
+- **Task Management**: Create, move, and delete tasks.
+- **Kanban Board**: Visualize tasks in different stages of completion.
+- **Freemium Model**: Free users can create up to 3 tasks.
+- **Premium Tier**: Users can upgrade via Stripe to unlock unlimited tasks.
+- **Responsive UI**: A clean and modern interface that works on all screen sizes.
+- **Toast Notifications**: Provides feedback for user actions like creating or deleting tasks.
+
+---
+
+## Local Setup and Run Instructions
+
+Follow these steps to get the project running on your local machine.
+
+### 1. Clone the repository
+
+```bash
+git clone https://github.com/Rakibislam22/QuickTask
+cd QuickTask
+```
+
+### 2. Install dependencies
+
+Install the required packages using npm or your preferred package manager:
+
+```bash
+npm install
+```
+
+### 3. Set up environment variables
+
+Create a `.env.local` file in the root of your project by copying the example file:
+
+```bash
+cp .env.example .env.local
+```
+
+Now, open `.env.local` and fill in the required environment variables.
+
+### 4. Run the development server
+
+Start the Next.js development server:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+The application should now be running at http://localhost:3000.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+---
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## `.env.example`
 
-## Learn More
+This file contains the environment variables needed to run the application.
 
-To learn more about Next.js, take a look at the following resources:
+```env
+# The base URL for the backend API
+NEXT_PUBLIC_API_URL=http://localhost:3001/api
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+# Your Stripe publishable key for handling payments
+NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_xxxxxxxxxxxxxxxxxxxxxxxx
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+---
 
-## Deploy on Vercel
+## Implementation Notes & Challenges
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- **Architecture**: The frontend is built with Next.js (App Router) and communicates with a separate backend API for data persistence and authentication.
+- **State Management**: Client-side state is managed primarily with React hooks (`useState`, `useEffect`, `useRef`). For a larger application, integrating a dedicated state management library like Zustand or React Query could be beneficial.
+- **Component Structure**: Initially, the dashboard was a single large component. A key challenge was refactoring it into smaller, reusable components (Modals, UserMenu, etc.) located in `src/lib/` to improve maintainability and code clarity.
+- **Error Handling**: A centralized function, `getApiErrorMessage`, was created in `src/lib/utils.ts` to handle API errors consistently across the application, providing clear feedback to the user via toast notifications. This was crucial for creating a reliable user experience.
+- **Authentication**: The authentication flow relies on JWTs stored in `localStorage`. An Axios interceptor is used to automatically attach the bearer token to all outgoing API requests, simplifying API calls throughout the app.
