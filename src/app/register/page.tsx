@@ -17,11 +17,19 @@ export default function RegisterPage() {
         setError('');
 
         try {
-            await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/auth/register`, {
-                name,
-                email,
-                password,
-            });
+            await axios.post(
+                `${process.env.NEXT_PUBLIC_API_URL}/auth/register`,
+                {
+                    name,
+                    email,
+                    password,
+                },
+                {
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                }
+            );
 
             router.push('/login');
         } catch (err: any) {
